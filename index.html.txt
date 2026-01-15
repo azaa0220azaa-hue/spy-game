@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Тагнуулч Илрүүлэх - Advanced</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
+        
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background: radial-gradient(circle at top, #1e293b, #0f172a); 
+            color: #f1f5f9;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+        }
+
+        .big-text { font-weight: 900; letter-spacing: -0.02em; }
+
+        .soft-btn {
+            background: #10b981;
+            color: #064e3b;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+        .soft-btn:active { transform: scale(0.95); }
+        .soft-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .outline-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .outline-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.1); }
+
+        .setting-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 8px 12px;
+            color: white;
+            outline: none;
+            width: 100%;
+        }
+
+        /* Pull-up Mechanism */
+        .reveal-zone {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            max-width: 340px;
+            overflow: hidden;
+            border-radius: 32px;
+            background: rgba(0,0,0,0.4);
+            border: 2px solid rgba(255,255,255,0.05);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .sliding-content {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            background: linear-gradient(135deg, #10b981, #059669);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #064e3b;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .imposter-bg { 
+            background: linear-gradient(135deg, #ef4444, #b91c1c) !important; 
+            color: white !important; 
+        }
+
+        .is-holding .sliding-content {
+            transform: translateY(-100%);
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 40;
+        }
+
+        .modal-blur {
+            backdrop-filter: blur(20px);
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        /* Full Screen Reveal State */
+        .reveal-mode header, 
+        .reveal-mode .settings-btn {
+            display: none !important;
+        }
+
+        .starter-badge {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center">
+
+    <div onclick="toggleSettings()" class="settings-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 modal-blur hidden flex items-center justify-center p-6 z-[60]">
+        <div class="glass-card p-8 max-w-lg w-full border border-white/10 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <h2 id="settings-title" class="text-2xl big-text mb-6 uppercase tracking-wider text-emerald-400">Тохиргоо</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-sm">
+                <div class="flex flex-col gap-2">
+                    <label class="opacity-60 uppercase text-[10px] font-bold tracking-widest">Тоглогчид</label>
+                    <select id="setting-player-count" class="setting-input" onchange="renderNameInputs()">
+                        <option value="3">3</option>
+                        <option value="4" selected>4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="8">8</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="opacity-60 uppercase text-[10px] font-bold tracking-widest">Тагнуулч</label>
+                    <select id="setting-imposter-count" class="setting-input">
+                        <option value="1" selected>1</option>
+                        <option value="2">2</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="opacity-60 uppercase text-[10px] font-bold tracking-widest">Хэл</label>
+                    <select id="setting-lang" class="setting-input" onchange="updateTranslationUI()">
+                        <option value="mn" selected>Монгол</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="opacity-60 uppercase text-[10px] font-bold tracking-widest">Хугацаа</label>
+                    <select id="setting-timer" class="setting-input">
+                        <option value="60">1:00</option>
+                        <option value="120" selected>2:00</option>
+                        <option value="180">3:00</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <label id="ui-names-label" class="opacity-60 uppercase text-[10px] font-bold tracking-widest mb-3 block">Нэрс засах</label>
+                <div id="player-names-container" class="grid grid-cols-2 gap-3"></div>
+            </div>
+
+            <button onclick="applySettings()" class="w-full py-4 soft-btn rounded-2xl uppercase tracking-widest">Хадгалах</button>
+        </div>
+    </div>
+
+    <!-- Main Game UI -->
+    <header class="w-full max-w-xl flex flex-col items-center mb-12 text-center">
+        <h1 id="ui-title" class="text-4xl big-text mb-2 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent uppercase">Тагнуулч</h1>
+        <div id="game-status-label" class="px-4 py-1 bg-white/5 rounded-full text-xs font-bold tracking-widest text-emerald-400 uppercase">Тоглоомоо эхлүүлнэ үү</div>
+        
+        <!-- Starter Person Display -->
+        <div id="starter-display" class="hidden mt-6 starter-badge">
+             <div class="bg-emerald-500/20 border border-emerald-500/30 px-6 py-3 rounded-2xl">
+                 <p class="text-[10px] uppercase font-bold tracking-widest text-emerald-400 mb-1" id="ui-starter-label">Яриаг эхлүүлэх:</p>
+                 <p id="starter-name" class="text-xl big-text text-white">---</p>
+             </div>
+        </div>
+
+        <div id="timer-display" class="text-6xl big-text mt-4 text-white">00:00</div>
+
+        <!-- Reset Button during discussion -->
+        <button id="reset-btn" onclick="resetToStart()" class="hidden mt-6 outline-btn px-6 py-2 rounded-xl text-xs uppercase tracking-widest">
+            Шинээр эхлэх
+        </button>
+    </header>
+
+    <!-- Reveal Section (Full Screen Focus) -->
+    <div id="reveal-area" class="w-full max-w-xl flex flex-col items-center hidden">
+        <h2 id="current-player-display" class="text-4xl big-text mb-12 text-white drop-shadow-lg tracking-widest uppercase">???</h2>
+        
+        <div id="pull-card" class="reveal-zone mb-8" onmousedown="holdStart()" onmouseup="holdEnd()" ontouchstart="holdStart(event)" ontouchend="holdEnd(event)">
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 opacity-40">
+                <div class="animate-bounce mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                    </svg>
+                </div>
+                <p class="text-sm uppercase font-black tracking-[0.2em]" id="ui-hold-text">Дээш татаж нууцаа хар</p>
+            </div>
+            
+            <div id="slide-content" class="sliding-content">
+                <p id="ui-role-type" class="text-[11px] uppercase font-bold tracking-[0.4em] opacity-60 mb-3">Үүрэг</p>
+                <h3 id="role-text" class="text-4xl big-text uppercase mb-10">Иргэн</h3>
+                <div class="w-16 h-1 bg-black/10 mb-10 rounded-full"></div>
+                <p id="ui-secret-label" class="text-[11px] uppercase font-bold tracking-[0.4em] opacity-60 mb-3">Нууц мэдээлэл</p>
+                <h3 id="word-text" class="text-5xl big-text leading-tight">Алим</h3>
+            </div>
+        </div>
+
+        <button id="next-player-btn" onclick="nextPlayer()" class="soft-btn px-12 py-5 rounded-3xl hidden uppercase tracking-widest shadow-2xl text-lg">
+            Дараагийн тоглогч
+        </button>
+    </div>
+
+    <!-- Start Button Initial -->
+    <div id="start-screen" class="w-full max-w-xl flex flex-col items-center">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12 opacity-30" id="initial-players-grid">
+            <!-- Mock items -->
+        </div>
+        <button onclick="startGameSequence()" class="soft-btn px-20 py-6 rounded-[2rem] text-2xl big-text uppercase shadow-[0_20px_50px_rgba(16,185,129,0.3)]">
+            Тоглоом Эхлэх
+        </button>
+    </div>
+
+    <script>
+        const TRANSLATIONS = {
+            mn: {
+                title: "Тагнуулч", status_init: "Тоглоомоо эхлүүлнэ үү", 
+                status_reveal: "Мэдээллээ нууцаар үз", started: "Ярилцлага эхэллээ!",
+                imposter: "ТАГНУУЛ", citizen: "ИРГЭН", hint: "СЭЖҮҮР", player: "Тоглогч",
+                hold: "Дээш татаж нууцаа хар", role: "Үүрэг", secret: "Нууц мэдээлэл",
+                next: "Дараагийн тоглогч", start_disc: "Хэлэлцүүлэг эхлэх", settings: "Тохиргоо", names: "Нэрс засах",
+                starter_label: "Яриаг эхлүүлэх:", reset: "Шинээр эхлэх"
+            },
+            en: {
+                title: "Imposter", status_init: "Start the game", 
+                status_reveal: "Check your info secretly", started: "Discussion Started!",
+                imposter: "IMPOSTER", citizen: "CITIZEN", hint: "HINT", player: "Player",
+                hold: "Pull up to see secret", role: "Role", secret: "Secret Info",
+                next: "Next Player", start_disc: "Start Discussion", settings: "Settings", names: "Edit Names",
+                starter_label: "Speaker to start:", reset: "Reset Game"
+            }
+        };
+
+        const DATA_BANK = {
+            mn: [
+                { word: "Арслан", hint: "Зэрлэг амьтан" }, { word: "Тэмээ", hint: "Таван хошуу мал" },
+                { word: "Гэр", hint: "Монгол сууц" }, { word: "Дээл", hint: "Үндэсний хувцас" },
+                { word: "Бууз", hint: "Монгол хоол" }, { word: "Машин", hint: "Тээврийн хэрэгсэл" },
+                { word: "Улаанбаатар", hint: "Нийслэл хот" }, { word: "Чингис хаан", hint: "Түүхэн хүн" }
+            ],
+            en: [
+                { word: "Lion", hint: "Wild animal" }, { word: "Camel", hint: "Desert animal" },
+                { word: "Pizza", hint: "Fast food" }, { word: "Car", hint: "Vehicle" },
+                { word: "New York", hint: "Big City" }, { word: "Einstein", hint: "Famous person" }
+            ]
+        };
+
+        let gameData = {
+            players: [], playerNames: [], word: "", hint: "", timer: 120, 
+            lang: 'mn', activePlayerIdx: 0, hasSeen: false, interval: null
+        };
+
+        function toggleSettings() {
+            document.getElementById('settings-modal').classList.toggle('hidden');
+        }
+
+        function renderNameInputs() {
+            const count = parseInt(document.getElementById('setting-player-count').value);
+            const container = document.getElementById('player-names-container');
+            const lang = document.getElementById('setting-lang').value;
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                const name = gameData.playerNames[i] || `${TRANSLATIONS[lang].player} ${i + 1}`;
+                html += `<input type="text" id="name-input-${i}" value="${name}" class="setting-input text-xs" placeholder="Player ${i+1}">`;
+            }
+            container.innerHTML = html;
+        }
+
+        function updateTranslationUI() {
+            const t = TRANSLATIONS[document.getElementById('setting-lang').value];
+            document.getElementById('settings-title').innerText = t.settings;
+            document.getElementById('ui-names-label').innerText = t.names;
+            document.getElementById('ui-starter-label').innerText = t.starter_label;
+            document.getElementById('reset-btn').innerText = t.reset;
+            renderNameInputs();
+        }
+
+        function applySettings() {
+            const count = parseInt(document.getElementById('setting-player-count').value);
+            gameData.playerNames = [];
+            for (let i = 0; i < count; i++) {
+                gameData.playerNames.push(document.getElementById(`name-input-${i}`).value || `Player ${i+1}`);
+            }
+            toggleSettings();
+            resetToStart();
+        }
+
+        function resetToStart() {
+            document.body.classList.remove('reveal-mode');
+            document.getElementById('starter-display').classList.add('hidden');
+            document.getElementById('reset-btn').classList.add('hidden');
+            
+            const pCount = parseInt(document.getElementById('setting-player-count').value);
+            const grid = document.getElementById('initial-players-grid');
+            grid.innerHTML = Array(pCount).fill('<div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-xl">?</div>').join('');
+            
+            document.getElementById('start-screen').classList.remove('hidden');
+            document.getElementById('reveal-area').classList.add('hidden');
+            document.getElementById('game-status-label').innerText = TRANSLATIONS[gameData.lang].status_init;
+            document.getElementById('timer-display').innerText = "00:00";
+            document.getElementById('timer-display').classList.remove('text-red-500');
+            clearInterval(gameData.interval);
+        }
+
+        function startGameSequence() {
+            document.body.classList.add('reveal-mode');
+            const pCount = parseInt(document.getElementById('setting-player-count').value);
+            const iCount = parseInt(document.getElementById('setting-imposter-count').value);
+            gameData.lang = document.getElementById('setting-lang').value;
+            gameData.timer = parseInt(document.getElementById('setting-timer').value);
+            
+            const pool = DATA_BANK[gameData.lang];
+            const item = pool[Math.floor(Math.random() * pool.length)];
+            gameData.word = item.word;
+            gameData.hint = item.hint;
+
+            let roles = new Array(pCount).fill(false);
+            let assigned = 0;
+            while(assigned < iCount) {
+                let idx = Math.floor(Math.random() * pCount);
+                if(!roles[idx]) { roles[idx] = true; assigned++; }
+            }
+
+            gameData.players = roles.map((isImp, i) => ({
+                name: gameData.playerNames[i] || `Player ${i+1}`,
+                isImposter: isImp
+            }));
+
+            gameData.activePlayerIdx = 0;
+            gameData.hasSeen = false;
+            
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('reveal-area').classList.remove('hidden');
+            updateRevealUI();
+        }
+
+        function updateRevealUI() {
+            const t = TRANSLATIONS[gameData.lang];
+            const p = gameData.players[gameData.activePlayerIdx];
+            
+            document.getElementById('current-player-display').innerText = p.name;
+            document.getElementById('ui-hold-text').innerText = t.hold;
+            document.getElementById('ui-role-type').innerText = t.role;
+            document.getElementById('ui-secret-label').innerText = t.secret;
+            document.getElementById('next-player-btn').classList.add('hidden');
+
+            const roleText = document.getElementById('role-text');
+            const wordText = document.getElementById('word-text');
+            const slide = document.getElementById('slide-content');
+
+            if(p.isImposter) {
+                roleText.innerText = t.imposter;
+                wordText.innerText = `${t.hint}: ${gameData.hint}`;
+                slide.classList.add('imposter-bg');
+            } else {
+                roleText.innerText = t.citizen;
+                wordText.innerText = gameData.word;
+                slide.classList.remove('imposter-bg');
+            }
+        }
+
+        function holdStart(e) {
+            if (e) e.preventDefault();
+            document.getElementById('pull-card').classList.add('is-holding');
+            gameData.hasSeen = true;
+        }
+
+        function holdEnd(e) {
+            if (e) e.preventDefault();
+            document.getElementById('pull-card').classList.remove('is-holding');
+            if(gameData.hasSeen) {
+                const btn = document.getElementById('next-player-btn');
+                const t = TRANSLATIONS[gameData.lang];
+                btn.classList.remove('hidden');
+                btn.innerText = (gameData.activePlayerIdx === gameData.players.length - 1) ? t.start_disc : t.next;
+            }
+        }
+
+        function nextPlayer() {
+            if(gameData.activePlayerIdx < gameData.players.length - 1) {
+                gameData.activePlayerIdx++;
+                gameData.hasSeen = false;
+                updateRevealUI();
+            } else {
+                startMainDiscussion();
+            }
+        }
+
+        function startMainDiscussion() {
+            document.body.classList.remove('reveal-mode');
+            document.getElementById('reveal-area').classList.add('hidden');
+            const t = TRANSLATIONS[gameData.lang];
+            document.getElementById('game-status-label').innerText = t.started;
+            document.getElementById('reset-btn').classList.remove('hidden');
+            
+            // Randomly select someone to start
+            const randomIdx = Math.floor(Math.random() * gameData.players.length);
+            const starter = gameData.players[randomIdx];
+            document.getElementById('starter-name').innerText = starter.name;
+            document.getElementById('starter-display').classList.remove('hidden');
+            
+            gameData.interval = setInterval(() => {
+                gameData.timer--;
+                updateTimerDisplay();
+                if(gameData.timer <= 0) {
+                    clearInterval(gameData.interval);
+                    document.getElementById('game-status-label').innerText = "ЦАГ ДУУСЛАА!";
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            let m = Math.floor(gameData.timer / 60);
+            let s = gameData.timer % 60;
+            const display = document.getElementById('timer-display');
+            display.innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            if(gameData.timer < 10) display.classList.add('text-red-500');
+        }
+
+        window.onload = () => {
+            renderNameInputs();
+            resetToStart();
+        };
+    </script>
+</body>
+</html>
